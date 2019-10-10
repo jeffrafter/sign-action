@@ -26,6 +26,10 @@ jobs:
 
 To see this in use, checkout [sign-test](https://github.com/jeffrafter/sign-test/issues/1).
 
+If you want to use the `COMMITTER_TOKEN` you have to [generate a personal access token](https://github.com/settings/tokens). This allows you to add branch-protections to protect master while still allowing the action to commit.
+
+![](https://rpl.cat/uploads/tghckpaMWlieG-ZaFef79GxUq6fZUCHIMCn35PDPLLU/public.png)
+
 ## Development
 
 Clone this repo. Then run tests:
