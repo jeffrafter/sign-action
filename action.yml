@@ -1,0 +1,10 @@
+name: sign
+description: "If a user adds a comment it signs the specified file"
+author: "@jeffrafter"
+runs:
+  using: "node12"
+  main: "./sign.js"
+inputs:
+  file-to-sign:
+    description: Path to the file that you want signatures added onto
+    default: README.md
