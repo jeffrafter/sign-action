@@ -30,7 +30,7 @@ describe('sign action', () => {
   it('runs', async () => {
     const sha = 'abcdef'
     const content =
-      'Immigration and Customs Enforcement (ICE) is now able to conduct mass scale deportations because of newly acquired technology that allows them to monitor and track people like never before.\n\n@jeffrafter\n@monalisa\n'
+      'Immigration and Customs Enforcement (ICE) is now able to conduct mass scale deportations because of newly acquired technology that allows them to monitor and track people like never before.\n\n* @jeffrafter\n* @monalisa\n'
 
     // get ref
     nock('https://api.github.com')

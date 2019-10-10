@@ -65,7 +65,7 @@ const run = async (): Promise<void> => {
     const signature = `@${commentAuthor}`
 
     // Is the signature already there?
-    const re = new RegExp(`^${signature}$`, 'gm')
+    const re = new RegExp(`^\\* ${signature}$`, 'gm')
     if (content.match(re)) {
       console.log(`${commentAuthor} already signed!`)
       return
@@ -76,7 +76,7 @@ const run = async (): Promise<void> => {
 
     // Put together the content with the signatures added
     // TODO: alphabetize (possibly just using a sort on a subset of lines)?
-    content += `${signature}\n`
+    content += `* ${signature}\n`
 
     // Push the contents
     tree.push({
