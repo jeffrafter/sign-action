@@ -27,14 +27,18 @@ const run = async (): Promise<void> => {
     // Is this limited to an issue number?
     const expectedIssueNumber = core.getInput('issue-number')
     if (expectedIssueNumber && expectedIssueNumber !== '' && expectedIssueNumber !== `${issue.number}`) {
-      console.log(`Comment for unexpected issue number ${issue.number}, not signing`)
+      console.warn(`Comment for unexpected issue number ${issue.number}, not signing`)
       return
     }
 
     // Only match comments with single line word chars
     // Including "." and "-" for hypenated names and honorifics
     // Name must start with a word char
-    if (!commentBody.match(/^\w[.\w\- ]+$/i)) return
+    if (!commentBody.match(/^\w[.\w\- ]+$/i)) {
+      throw new Error(
+        'Comment does not appear to be a name. Only names with valid characters on a single line are accepted.',
+      )
+    }
     console.log(`Signing ${commentBody} for ${commentAuthor}!`)
 
     // Grab the ref for a branch (master in this case)
@@ -72,14 +76,13 @@ const run = async (): Promise<void> => {
     let content = fs.readFileSync(fileToSignPath).toString('utf-8')
     let [letter, signatures] = content.split('<!-- signatures -->')
     if (!signatures) {
-      console.log('No <!-- signatures --> marker found. Please add a signatures marker to your document')
+      throw new Error('No <!-- signatures --> marker found. Please add a signatures marker to your document')
     }
 
     // Is the signature already there?
     const re = new RegExp(`^\\* .* @${commentAuthor}$`, 'gm')
     if (signatures.match(re)) {
-      console.log(`We're confused, there is already a signature for ${commentAuthor}`)
-      return
+      throw new Error(`We're confused, there is already a signature for ${commentAuthor}`)
     }
 
     // Make sure there is a newline
@@ -155,7 +158,7 @@ const run = async (): Promise<void> => {
     // TODO: add a reaction to the comment
   } catch (error) {
     console.error(error.message)
-    core.setFailed(`Failure: ${error}`)
+    core.setFailed(`${error}`)
   }
 }
 
