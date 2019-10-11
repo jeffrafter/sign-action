@@ -8,3 +8,9 @@ inputs:
   file-to-sign:
     description: Path to the file that you want signatures added onto
     default: README.md
+  issue-number:
+    description: If present only comments created on the specified issue will be used
+    default: 1
+  alphabetize:
+    description: Alphabetize the names in the list by user name
+    default: yes

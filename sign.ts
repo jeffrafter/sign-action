@@ -21,12 +21,21 @@ const run = async (): Promise<void> => {
     if (!issue) return
 
     const comment = github.context.payload.comment
-    const commentBody = comment.body
+    const commentBody = comment.body.trim()
     const commentAuthor = comment.user.login
 
-    // If the comment is not the single word "Sign" we won't do anything
-    if (!commentBody.match(/^sign$/i)) return
-    console.log(`Signing for ${commentAuthor}!`)
+    // Is this limited to an issue number?
+    const expectedIssueNumber = core.getInput('issue-number')
+    if (expectedIssueNumber && expectedIssueNumber !== '' && expectedIssueNumber !== `${issue.number}`) {
+      console.log(`Comment for unexpected issue number ${issue.number}, not signing`)
+      return
+    }
+
+    // Only match comments with single line word chars
+    // Including "." and "-" for hypenated names and honorifics
+    // Name must start with a word char
+    if (!commentBody.match(/^\w[.\w\- ]+$/i)) return
+    console.log(`Signing ${commentBody} for ${commentAuthor}!`)
 
     // Grab the ref for a branch (master in this case)
     // If you already know the sha then you don't need to do this
@@ -59,24 +68,46 @@ const run = async (): Promise<void> => {
     const workspace = process.env['GITHUB_WORKSPACE'] || './'
     const fileToSign = core.getInput('file-to-sign')
     const fileToSignPath = path.join(workspace, fileToSign)
-    let content = fs.readFileSync(fileToSignPath).toString('utf-8')
 
-    // TODO: allow other kinds of signatures
-    const signature = `@${commentAuthor}`
+    let content = fs.readFileSync(fileToSignPath).toString('utf-8')
+    let [letter, signatures] = content.split('<!-- signatures -->')
+    if (!signatures) {
+      console.log('No <!-- signatures --> marker found. Please add a signatures marker to your document')
+    }
 
     // Is the signature already there?
-    const re = new RegExp(`^\\* ${signature}$`, 'gm')
-    if (content.match(re)) {
-      console.log(`${commentAuthor} already signed!`)
+    const re = new RegExp(`^\\* .* @${commentAuthor}$`, 'gm')
+    if (signatures.match(re)) {
+      console.log(`We're confused, there is already a signature for ${commentAuthor}`)
       return
     }
 
     // Make sure there is a newline
-    if (content !== '' && !content.endsWith('\n')) content += '\n'
+    signatures = signatures.trim()
+    if (signatures !== '' && !signatures.endsWith('\n')) signatures += '\n'
 
     // Put together the content with the signatures added
-    // TODO: alphabetize (possibly just using a sort on a subset of lines)?
-    content += `* ${signature}\n`
+    const signature = `${commentBody}, @${commentAuthor}`
+    signatures += `* ${signature}\n`
+
+    // Sort the lines alphabetically by handle
+    if (core.getInput('alphabetize') === 'yes') {
+      console.log('Alphabetizing the signatures by user name')
+      const signatureLines = signatures.trim().split('\n')
+      signatureLines.sort((a: string, b: string) => {
+        const handleA = a.match(/@.+$/)
+        const handleB = b.match(/@.+$/)
+        if (!handleA) return -1
+        if (!handleB) return 1
+        return handleA == handleB ? 0 : handleA < handleB ? -1 : 1
+      })
+      signatures = signatureLines.join('\n')
+      signatures += `\n`
+    }
+
+    // Join the pieces
+    letter = `${letter}<!-- signatures -->\n`
+    content = `${letter}${signatures}`
 
     // Push the contents
     tree.push({

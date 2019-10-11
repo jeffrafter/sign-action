@@ -9,6 +9,8 @@ beforeEach(() => {
   process.env['GITHUB_REPOSITORY'] = 'example/repository'
   process.env['GITHUB_TOKEN'] = '12345'
   process.env['INPUT_FILE-TO-SIGN'] = '__tests__/no-tech-for-ice.md'
+  process.env['INPUT_ISSUE-NUMBER'] = '1'
+  process.env['INPUT_ALPHABETIZE'] = 'yes'
 
   // https://developer.github.com/v3/activity/events/types/#issuecommentevent
   github.context.payload = {
@@ -21,7 +23,7 @@ beforeEach(() => {
       user: {
         login: 'monalisa',
       },
-      body: 'sign',
+      body: 'Mona Lisa',
     },
   } as WebhookPayload
 })
@@ -30,7 +32,7 @@ describe('sign action', () => {
   it('runs', async () => {
     const sha = 'abcdef'
     const content =
-      'Immigration and Customs Enforcement (ICE) is now able to conduct mass scale deportations because of newly acquired technology that allows them to monitor and track people like never before.\n\n* @jeffrafter\n* @monalisa\n'
+      'Immigration and Customs Enforcement (ICE) is now able to conduct mass scale deportations because of newly acquired technology that allows them to monitor and track people like never before.\n\n<!-- signatures -->\n* Jeff Rafter, @jeffrafter\n* Mona Lisa, @monalisa\n'
 
     // get ref
     nock('https://api.github.com')

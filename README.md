@@ -1,6 +1,16 @@
-A bot which allows users to reply to an issue with a comment to sign a petition.
+An action which allows users to reply to an issue with a comment to sign a petition.
 
-To use this bot add the following workflow to your repo at `.github/workflows/honk.yml`:
+Users responding to an issue with a comment will automatically sign the petition:
+
+![Example signature](https://user-images.githubusercontent.com/4064/66619936-90964d80-eb93-11e9-9237-f299eaf9f018.png)
+
+The action creates a new commit with the content of their comment and their user name:
+
+```
+* Jeff Rafter, @jeffrafter
+```
+
+To use this action add the following workflow to your repo at `.github/workflows/sign.yml`:
 
 ```yml
 name: Sign Petition
@@ -19,16 +29,37 @@ jobs:
       - uses: jeffrafter/sign-action@v1
         with:
           file-to-sign: README.md
+          issue-number: 1
+          alphabetize: yes
         env:
           COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+- `file-to-sign` - points to the file that you would like to add signatures to (defaults to `README.md`)
+- `issue-number` - limit comment processing to a single issue (defaults to 1; if empty all issue comments are treated as signatures)
+- `alphabetize` - if yes, all sinatures will be alphabetized by user name (defaults to `yes`)
+
+Your petition should take the format:
+
+    Immigration and Customs Enforcement (ICE) is now able to conduct
+    mass scale deportations because of newly acquired technology that
+    allows them to monitor and track people like never before.
+
+    Signed,
+
+    <!-- signatures -->
+    * Jeff Rafter, @jeffrafter
+
+Note that the `<!-- signatures -->` marker is required.
+
 To see this in use, checkout [sign-test](https://github.com/jeffrafter/sign-test/issues/1).
+
+## Branch protections
 
 If you want to use the `COMMITTER_TOKEN` you have to [generate a personal access token](https://github.com/settings/tokens). This allows you to add branch-protections to protect master while still allowing the action to commit.
 
-![](https://rpl.cat/uploads/tghckpaMWlieG-ZaFef79GxUq6fZUCHIMCn35PDPLLU/public.png)
+![Adding a secret COMMITTER_TOKEN](https://user-images.githubusercontent.com/4064/66620040-f4207b00-eb93-11e9-91c1-6b1c270050d3.png)
 
 ## Development
 
@@ -53,6 +84,8 @@ git checkout releases/v1
 Then build the distribution (requires compiling the TypeScript), drop the node modules and reinstall only the production node modules, commit and push the tag:
 
 ```bash
+git reset --hard master
+rm -rf node_modules
 npm install
 npm run build
 rm -rf node_modules
@@ -60,7 +93,7 @@ sed -i '' '/node_modules/d' .gitignore
 npm install --production
 git add .
 git commit -m "V1"
-git push origin releases/v1
+git push -f origin releases/v1
 git push origin :refs/tags/v1
 git tag -fa v1 -m "V1"
 git push origin v1
@@ -70,7 +103,9 @@ Once complete you'll likely want to remove the production node modules and reins
 
 # Notes
 
-Views are my own
+This action does not do any moderation of the signatures.
+
+Views are my own, unfortunately.
 
 # LICENCE
 
