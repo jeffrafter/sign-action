@@ -1,8 +1,6 @@
 # Ignore test runner output
 __tests__/runner/*
 
-# Ignore node_modules by default (not for release)
-node_modules
 
 # =========================
 # Node.js-Specific Ignores
